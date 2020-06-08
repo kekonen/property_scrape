@@ -8,7 +8,7 @@
 import scrapy
 
 
-class EbayKleinanzeigenSearchApartmentItem(scrapy.Item):
+class PropertyScrapeItem(scrapy.Item):
     # define the fields for your item here like:
     # name = scrapy.Field()
     pass

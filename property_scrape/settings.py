@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Scrapy settings for ebay_kleinanzeigen_search_apartment project
+# Scrapy settings for property_scrape project
 #
 # For simplicity, this file contains only settings considered important or
 # commonly used. You can find more settings consulting the documentation:
@@ -9,14 +9,14 @@
 #     https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 #     https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 
-BOT_NAME = 'ebay_kleinanzeigen_search_apartment'
+BOT_NAME = 'property_scrape'
 
-SPIDER_MODULES = ['ebay_kleinanzeigen_search_apartment.spiders']
-NEWSPIDER_MODULE = 'ebay_kleinanzeigen_search_apartment.spiders'
+SPIDER_MODULES = ['property_scrape.spiders']
+NEWSPIDER_MODULE = 'property_scrape.spiders'
 
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
-#USER_AGENT = 'ebay_kleinanzeigen_search_apartment (+http://www.yourdomain.com)'
+#USER_AGENT = 'property_scrape (+http://www.yourdomain.com)'
 
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = True
@@ -47,13 +47,13 @@ ROBOTSTXT_OBEY = True
 # Enable or disable spider middlewares
 # See https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 #SPIDER_MIDDLEWARES = {
-#    'ebay_kleinanzeigen_search_apartment.middlewares.EbayKleinanzeigenSearchApartmentSpiderMiddleware': 543,
+#    'property_scrape.middlewares.PropertyScrapeSpiderMiddleware': 543,
 #}
 
 # Enable or disable downloader middlewares
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 #DOWNLOADER_MIDDLEWARES = {
-#    'ebay_kleinanzeigen_search_apartment.middlewares.EbayKleinanzeigenSearchApartmentDownloaderMiddleware': 543,
+#    'property_scrape.middlewares.PropertyScrapeDownloaderMiddleware': 543,
 #}
 
 # Enable or disable extensions
@@ -65,7 +65,7 @@ ROBOTSTXT_OBEY = True
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 #ITEM_PIPELINES = {
-#    'ebay_kleinanzeigen_search_apartment.pipelines.EbayKleinanzeigenSearchApartmentPipeline': 300,
+#    'property_scrape.pipelines.PropertyScrapePipeline': 300,
 #}
 
 # Enable and configure the AutoThrottle extension (disabled by default)

@@ -2,8 +2,8 @@
 import scrapy
 
 
-class ApartmentsSpider(scrapy.Spider):
-    name = 'apartments'
+class EbayKleinanzaigenSpider(scrapy.Spider):
+    name = 'ebay_kleinanzaigen'
     allowed_domains = ['ebay-kleinanzeigen.de']
     start_urls = ['http://ebay-kleinanzeigen.de/']
 
