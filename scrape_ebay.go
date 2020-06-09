@@ -8,7 +8,9 @@ import (
 	"math/rand"
 	"os"
 	"strings"
+	"time"
 
+	browser "github.com/EDDYCJY/fake-useragent"
 	"github.com/gocolly/colly/v2"
 	"github.com/gocolly/colly/v2/proxy"
 )
@@ -39,31 +41,59 @@ func main() {
 	listingCollector := colly.NewCollector(
 		colly.AllowedDomains("www.ebay-kleinanzeigen.de"),
 		colly.AllowURLRevisit(),
-		colly.UserAgent("fwefopwekfopwjeopjwpojweopfjwpeofjopwefjwepofwe"),
+		colly.UserAgent(browser.Random()),
+		colly.Async(true),
+		colly.IgnoreRobotsTxt(),
 	)
 	itemCollector := colly.NewCollector(
 		colly.AllowedDomains("www.ebay-kleinanzeigen.de"),
 		colly.AllowURLRevisit(),
-		colly.UserAgent("wepoofppwdofowieojfiowjehiowhfuiewhfuiofwiefpjwpiejfewpifwepjfopwjfopewjowjfopewjew"),
+		colly.UserAgent(browser.Random()),
+		colly.Async(true),
+		colly.IgnoreRobotsTxt(),
 	)
 	listingCollector.SetProxyFunc(rp)
 	itemCollector.SetProxyFunc(rp)
 
+	listingCollector.SetRequestTimeout(time.Second * 25)
+	itemCollector.SetRequestTimeout(time.Second * 25)
+
+	listingCollector.Limit(&colly.LimitRule{
+		DomainGlob:  "*",
+		Parallelism: 5,
+	})
+	itemCollector.Limit(&colly.LimitRule{
+		DomainGlob:  "*",
+		Parallelism: 5,
+	})
+
 	// Find and visit all links
 	listingCollector.OnHTML("li.lazyload-item h2 a[href]", func(e *colly.HTMLElement) {
+		fmt.Println("Success", e.Attr("href"))
 
-		// writer.Write([]string{
-		// 	e.ChildAttr("a", "title"),
-		// 	e.ChildText("span"),
-		// 	e.Request.AbsoluteURL(e.ChildAttr("a", "href")),
-		// 	"https" + e.ChildAttr("img", "src"),
-		// })
-		fmt.Println(e.Attr("href"))
-		itemCollector.Visit(fmt.Sprintf("https://www.ebay-kleinanzeigen.de%s", e.Attr("href")))
+		// ctx := colly.NewContext()
+		// ctx.Put("category", name)
+		url := fmt.Sprintf("https://www.ebay-kleinanzeigen.de%s", e.Attr("href"))
+		listingCollector.Request("GET", url, nil, e.Request.Ctx, nil)
+		// itemCollector.Visit()
 	})
 
 	itemCollector.OnHTML("#viewad-product", func(e *colly.HTMLElement) {
-		fmt.Println("KEK")
+		fmt.Println("KEK", e.Request.Ctx.Get("category"), e.ChildText("#viewad-title"), e.ChildText("#viewad-price"), e.ChildText("#viewad-locality"), e.ChildText("#viewad-extra-info span"), e.ChildText("#viewad-cntr span"))
+
+		// TODO: parse url
+
+		// fmt.Println(e.ChildText("#viewad-title"))
+		// fmt.Println(e.ChildText("#viewad-price"))
+		// fmt.Println(e.ChildText("#viewad-locality"))
+		// fmt.Println(e.ChildText("#viewad-extra-info span"))
+		// fmt.Println(e.ChildText("#viewad-cntr span"))
+
+		// TODO: Get details
+		// TODO: Ausstattung
+		// TODO: Beschreibung
+		// TODO: Ad owner
+
 		// writer.Write([]string{
 		// 	e.ChildAttr("a", "title"),
 		// 	e.ChildText("span"),
@@ -71,30 +101,27 @@ func main() {
 		// 	"https" + e.ChildAttr("img", "src"),
 		// })
 		// e.Request.Visit(e.Attr("href"))
-		fmt.Println(e.ChildText("#viewad-title"))
-		fmt.Println(e.ChildText("#viewad-price"))
-		fmt.Println(e.ChildText("#viewad-locality"))
-		fmt.Println(e.ChildText("#viewad-extra-info span"))
-		fmt.Println(e.ChildText("#viewad-cntr span"))
-
 	})
 
 	listingCollector.OnRequest(func(r *colly.Request) {
 		fmt.Println("Visiting", r.URL)
-		r.Headers.Set("User-Agent", RandomString())
+		r.Headers.Set("User-Agent", browser.Random())
 	})
 	itemCollector.OnRequest(func(r *colly.Request) {
 		fmt.Println("Visiting", r.URL)
-		r.Headers.Set("User-Agent", RandomString())
+		r.Headers.Set("User-Agent", browser.Random())
 	})
 
 	listingCollector.OnError(func(r *colly.Response, err error) {
-		fmt.Println("ListingRequest URL:", r.Request.URL, "failed with response:", r, "\nError:", err)
-		listingCollector.Visit(r.Request.URL.String())
+		fmt.Println("UA L:", r.Request.Headers.Clone().Get("User-Agent"))
+		fmt.Println("ListingRequest URL:", r.Request.URL, "failed with response:", r, "\nError:", err) //, r.Headers.Get("User-Agent")
+
+		r.Request.Visit(r.Request.URL.String())
 	})
 	itemCollector.OnError(func(r *colly.Response, err error) {
+		fmt.Println("UA I:", r.Request.Headers.Clone().Get("User-Agent"))
 		fmt.Println("ItemRequest URL:", r.Request.URL, "failed with response:", r, "\nError:", err)
-		itemCollector.Visit(r.Request.URL.String())
+		r.Request.Visit(r.Request.URL.String())
 	})
 
 	// listingCollector.Visit("http://go-colly.org/")
@@ -104,17 +131,22 @@ func main() {
 	}
 
 	for _, c := range categories {
-		for p := 1; p < 2; p++ {
+		for p := 1; p < 6; p++ {
 			name := c[0]
 			cid := c[1]
-			fmt.Println(fmt.Sprintf("https://www.ebay-kleinanzeigen.de/%s/seite:%d/c%d", name, p, cid))
-			listingCollector.Visit(fmt.Sprintf("https://www.ebay-kleinanzeigen.de/%s/seite:%d/c%d", name, p, cid))
+			url := fmt.Sprintf("https://www.ebay-kleinanzeigen.de/%s/seite:%d/c%d", name, p, cid)
+			ctx := colly.NewContext()
+			ctx.Put("category", name)
+			listingCollector.Request("GET", url, nil, ctx, nil)
 		}
 
 	}
 
 	// err1 := listingCollector.Visit("https://www.ebay-kleinanzeigen.de/s-wohnung-mieten/seite:1/c203")
 	// fmt.Println(err1)
+	listingCollector.Wait()
+	itemCollector.Wait()
+
 	log.Println("listingCollector:\n", listingCollector)
 	log.Println("itemCollector:\n", itemCollector)
 }
